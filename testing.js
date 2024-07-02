@@ -68,7 +68,7 @@ app.post("/webhook", (req, res) => {
 const sendWhatsAppMessage = async (message) => {
   const url = "https://graph.facebook.com/v14.0/363901783471434/messages";
   const token =
-    "EAAXr5E4DbWoBOZB0YhFDQdF27x3BQtNXSlZBMGeLgunGa7BdniJ2SgtZCgBv095elI4BYwVwatcLxfoWCoGgdShfl1KQ868PNfwvmmXKZC2zZBT4E4CwIk5enqBbzloQl5ickHvZCNud89akkPjQMWNOZCfEt3pbMArSaZC7LluSSmzJ78GGBGQTMGpSOKbcPjvy6cvfUmjSg5IfdXRfLv8ZD";
+    "EAAXr5E4DbWoBO9r4e6MZCxMY3udwZBZBRZBprGnNj1TZAmkbxND6F1YJAv2NMmHHI6t5UEqBLZC5DbZCPGudyCzqTb1Jg5CHE4XR3mDagyI44ldhvpUmPg8uIDULquoCTBai3wuTXKS6qD3HIkszZAS2pJCgMsG10V5oLI10LLAjow6UBIOryq2LpBPg4CXiH4FK";
 
   try {
     const response = await axios.post(url, message, {
