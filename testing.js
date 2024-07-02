@@ -66,7 +66,7 @@ app.post("/webhook", (req, res) => {
 });
 
 const sendWhatsAppMessage = async (message) => {
-  const url = "https://graph.facebook.com/v14.0/363901783471434/messages";
+  const url = "https://graph.facebook.com/v14.0/397607813426011/messages";
   const token =
     "EAAXr5E4DbWoBO9r4e6MZCxMY3udwZBZBRZBprGnNj1TZAmkbxND6F1YJAv2NMmHHI6t5UEqBLZC5DbZCPGudyCzqTb1Jg5CHE4XR3mDagyI44ldhvpUmPg8uIDULquoCTBai3wuTXKS6qD3HIkszZAS2pJCgMsG10V5oLI10LLAjow6UBIOryq2LpBPg4CXiH4FK";
 
