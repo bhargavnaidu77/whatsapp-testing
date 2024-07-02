@@ -15,7 +15,7 @@ app.get("/webhook", (req, res) => {
 
   const responseMessage2 = {
     messaging_product: "whatsapp",
-    to: "",
+    to: "919133007708",
     type: "template",
     template: {
       name: "hello_world",
@@ -35,7 +35,6 @@ app.get("/webhook", (req, res) => {
     });
   };
   sendmultiple(temparr, responseMessage2);
-  // sendWhatsAppMessage(responseMessage);
 
   res.sendStatus(200);
 });

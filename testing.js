@@ -13,10 +13,10 @@ app.get("/webhook", (req, res) => {
 
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
-  // const challenge = req.query["hub.challenge"];
+  const challenge = req.query["hub.challenge"];
 
   if (mode && token === VERIFY_TOKEN) {
-    res.status(200);
+    res.status(200).send(challenge);
   } else {
     res.sendStatus(403);
   }
@@ -43,12 +43,23 @@ app.post("/webhook", (req, res) => {
           responseText = "Hi there! How can I help you today?";
         } else if (msgBody.toLowerCase() === "bye") {
           responseText = "Goodbye! Have a great day!";
+        } else if (msgBody.toLowerCase() === "temp") {
+          sendWhatsAppMessage(responseMessage2);
         } else {
           responseText =
             "I'm not sure how to respond to that. Can you please rephrase?";
         }
 
         const responseMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "text",
+          text: {
+            body: responseText,
+          },
+        };
+
+        const responseMessage2 = {
           messaging_product: "whatsapp",
           to: from,
           type: "template",
