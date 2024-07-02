@@ -34,9 +34,59 @@ app.post("/webhook", (req, res) => {
         const message = messages[0];
         const from = message.from; // Sender's phone number
         const msgBody = message.text ? message.text.body : "";
+        if (message.type === "text") {
+          console.log(`Received message from ${from}: ${msgBody}`);
+        }
+        if (message.type === "interactive") {
+          const interactiveMessage = message.interactive;
 
-        console.log(`Received message from ${from}: ${msgBody}`);
+          if (interactiveMessage.type === "list_reply") {
+            const selectedOptionId = interactiveMessage.list_reply.id;
+            const selectedOptionTitle = interactiveMessage.list_reply.title;
 
+            console.log(
+              `User selected option: ${selectedOptionId} - ${selectedOptionTitle}`
+            );
+          }
+        }
+        const interactiveMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "interactive",
+          interactive: {
+            type: "list",
+            header: {
+              type: "text",
+              text: "Menu Options",
+            },
+            body: {
+              text: "Please choose an option:",
+            },
+            footer: {
+              text: "Select an option from the list below",
+            },
+            action: {
+              button: "Select",
+              sections: [
+                {
+                  title: "Menu",
+                  rows: [
+                    {
+                      id: "option1",
+                      title: "General insurance",
+                      description: "Description for general insurance",
+                    },
+                    {
+                      id: "option2",
+                      title: "Life insurance",
+                      description: "Description for life insurance",
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        };
         const tempMessage = {
           messaging_product: "whatsapp",
           to: from,
@@ -67,9 +117,13 @@ app.post("/webhook", (req, res) => {
           responseText = "Goodbye! Have a great day!";
         } else if (msgBody.toLowerCase() === "temp") {
           sendWhatsAppMessage(tempMessage);
+        } else if (msgBody.toLowerCase() === "interactive") {
+          sendWhatsAppMessage(interactiveMessage);
         } else {
-          responseText =
-            "I'm not sure how to respond to that. Can you please rephrase?";
+          if (msgBody != "") {
+            responseText =
+              "I'm not sure how to respond to that. Can you please rephrase?";
+          }
         }
 
         const responseMessage = {

@@ -16,26 +16,61 @@ app.get("/webhook", (req, res) => {
   const responseMessage2 = {
     messaging_product: "whatsapp",
     to: "919133007708",
-    type: "template",
-    template: {
-      name: "hello_world",
-      language: {
-        code: "en_US",
+    type: "IMAGE",
+    image: {
+      link: "https://pixabay.com/get/g3783501c96926d92c7cfbb37d4b6ba1e24b4e184694a8b9fc27ba470306fca2a11c0615306302835a7c346c04a643b9da5c3c1d11690a963f168b5677b4dc4a9_1280.jpg",
+    },
+  };
+  const data = {
+    messaging_product: "whatsapp",
+    to: "919133007708",
+    type: "interactive",
+    interactive: {
+      type: "list",
+      header: {
+        type: "text",
+        text: "Menu Options",
+      },
+      body: {
+        text: "Please choose an option:",
+      },
+      footer: {
+        text: "Select an option from the list below",
+      },
+      action: {
+        button: "Select",
+        sections: [
+          {
+            title: "Menu",
+            rows: [
+              {
+                id: "option1",
+                title: "General insurance",
+                description: "Description for general insurance",
+              },
+              {
+                id: "option2",
+                title: "Life insurance",
+                description: "Description for life insurance",
+              },
+            ],
+          },
+        ],
       },
     },
   };
 
-  const temparr = ["919133007708", "918106438172", "919494261853"];
+  // const temparr = ["919133007708", "918106438172", "919494261853"];
 
-  const sendmultiple = (temparr, responseMessage2) => {
-    temparr.forEach((number) => {
-      responseMessage2.to = number;
-      console.log(responseMessage2.to);
-      sendWhatsAppMessage(responseMessage2);
-    });
-  };
-  sendmultiple(temparr, responseMessage2);
-
+  // const sendmultiple = (temparr, responseMessage2) => {
+  //   temparr.forEach((number) => {
+  //     responseMessage2.to = number;
+  //     console.log(responseMessage2.to);
+  //     sendWhatsAppMessage(responseMessage2);
+  //   });
+  // };
+  // sendmultiple(temparr, responseMessage2);
+  sendWhatsAppMessage(data);
   res.sendStatus(200);
 });
 
