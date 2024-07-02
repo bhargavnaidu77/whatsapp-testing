@@ -51,9 +51,12 @@ app.post("/webhook", (req, res) => {
         const responseMessage = {
           messaging_product: "whatsapp",
           to: from,
-          type: "text",
-          text: {
-            body: responseText,
+          type: "template",
+          template: {
+            name: "my_temp_1",
+            language: {
+              code: "en_US",
+            },
           },
         };
 
