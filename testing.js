@@ -33,8 +33,8 @@ app.post("/webhook", (req, res) => {
       if (messages && messages.length > 0) {
         const message = messages[0];
         const from = message.from; // Sender's phone number
+        var msgBody = message.text ? message.text.body : "";
         if (message.type === "text") {
-          var msgBody = message.text ? message.text.body : "";
           console.log(`Received message from ${from}: ${msgBody}`);
         }
         if (message.type === "interactive") {
