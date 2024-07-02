@@ -57,6 +57,17 @@ app.post("/webhook", (req, res) => {
             language: {
               code: "en_US",
             },
+            components: [
+              {
+                type: "body",
+                parameters: [
+                  {
+                    type: "text",
+                    text: "user", // Replace the variable in the template with actual value
+                  },
+                ],
+              },
+            ],
           },
         };
 
