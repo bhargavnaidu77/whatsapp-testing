@@ -10,7 +10,6 @@ app.use(bodyParser.json());
 // Verification endpoint to validate webhook
 app.get("/webhook", (req, res) => {
   const VERIFY_TOKEN = "YOUR_VERIFY_TOKEN"; // Replace with your verify token
-
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
@@ -25,6 +24,7 @@ app.get("/webhook", (req, res) => {
 // Webhook endpoint to handle incoming messages
 app.post("/webhook", (req, res) => {
   const entry = req.body.entry;
+
   if (entry && entry.length > 0) {
     const changes = entry[0].changes;
     if (changes && changes.length > 0) {
@@ -80,8 +80,9 @@ app.post("/webhook", (req, res) => {
             body: responseText,
           },
         };
-
-        sendWhatsAppMessage(responseMessage);
+        if (responseText != undefined) {
+          sendWhatsAppMessage(responseMessage);
+        }
       }
     }
   }
