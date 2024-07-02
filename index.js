@@ -38,7 +38,7 @@ app.get("/webhook", (req, res) => {
         text: "Select an option from the list below",
       },
       action: {
-        button: "Select",
+        button: "Menu",
         sections: [
           {
             title: "Menu",

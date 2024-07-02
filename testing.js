@@ -33,17 +33,15 @@ app.post("/webhook", (req, res) => {
       if (messages && messages.length > 0) {
         const message = messages[0];
         const from = message.from; // Sender's phone number
-        const msgBody = message.text ? message.text.body : "";
         if (message.type === "text") {
+          var msgBody = message.text ? message.text.body : "";
           console.log(`Received message from ${from}: ${msgBody}`);
         }
         if (message.type === "interactive") {
           const interactiveMessage = message.interactive;
-
           if (interactiveMessage.type === "list_reply") {
             var selectedOptionId = interactiveMessage.list_reply.id;
             var selectedOptionTitle = interactiveMessage.list_reply.title;
-
             console.log(
               `User selected option: ${selectedOptionId} - ${selectedOptionTitle}`
             );
@@ -72,12 +70,12 @@ app.post("/webhook", (req, res) => {
                   title: "Menu",
                   rows: [
                     {
-                      id: "option1",
+                      id: "lifeoption-L1",
                       title: "Life insurance",
                       description: "Description for Life insurance",
                     },
                     {
-                      id: "option2",
+                      id: "genoption-L1",
                       title: "General insurance",
                       description: "Description for General insurance",
                     },
@@ -111,22 +109,22 @@ app.post("/webhook", (req, res) => {
                   title: "Menu",
                   rows: [
                     {
-                      id: "option1",
+                      id: "term-insuranceoption-L2",
                       title: "Term insurance",
                       description: "Description for Term insurance",
                     },
                     {
-                      id: "option2",
+                      id: "Endowmentoption-L2",
                       title: "Endowment",
                       description: "Description for Endowment",
                     },
                     {
-                      id: "option3",
+                      id: "Unitlinkedoption-L2",
                       title: "Unitlinked",
                       description: "Description for Unitlinked",
                     },
                     {
-                      id: "option4",
+                      id: "Pensionoption-L2",
                       title: "Pension",
                       description: "Description for Pension",
                     },
@@ -159,17 +157,17 @@ app.post("/webhook", (req, res) => {
                   title: "Menu",
                   rows: [
                     {
-                      id: "option1",
+                      id: "Motor-insuranceoption-L2",
                       title: "Motor insurance",
                       description: "Description for Motor insurance",
                     },
                     {
-                      id: "option2",
+                      id: "Health-insuranceoption-L2",
                       title: "Health insurance",
                       description: "Description for Health insurance",
                     },
                     {
-                      id: "option3",
+                      id: "Travel-insuranceoption-L2",
                       title: "Travel insurance",
                       description: "Description for Travel insurance",
                     },
@@ -211,9 +209,9 @@ app.post("/webhook", (req, res) => {
           sendWhatsAppMessage(tempMessage);
         } else if (msgBody.toLowerCase() === "interactive") {
           sendWhatsAppMessage(interactiveMainMessage);
-        } else if (selectedOptionId === "option1") {
+        } else if (selectedOptionId === "lifeoption-L1") {
           sendWhatsAppMessage(interactiveLifeInsuranceMessage);
-        } else if (selectedOptionId === "option2") {
+        } else if (selectedOptionId === "genoption-L1") {
           sendWhatsAppMessage(interactiveGeneralInsuranceMessage);
         } else {
           if (msgBody != "") {
