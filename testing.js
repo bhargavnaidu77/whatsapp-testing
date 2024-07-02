@@ -41,15 +41,15 @@ app.post("/webhook", (req, res) => {
           const interactiveMessage = message.interactive;
 
           if (interactiveMessage.type === "list_reply") {
-            const selectedOptionId = interactiveMessage.list_reply.id;
-            const selectedOptionTitle = interactiveMessage.list_reply.title;
+            var selectedOptionId = interactiveMessage.list_reply.id;
+            var selectedOptionTitle = interactiveMessage.list_reply.title;
 
             console.log(
               `User selected option: ${selectedOptionId} - ${selectedOptionTitle}`
             );
           }
         }
-        const interactiveMessage = {
+        const interactiveMainMessage = {
           messaging_product: "whatsapp",
           to: from,
           type: "interactive",
@@ -73,13 +73,105 @@ app.post("/webhook", (req, res) => {
                   rows: [
                     {
                       id: "option1",
-                      title: "General insurance",
-                      description: "Description for general insurance",
+                      title: "Life insurance",
+                      description: "Description for Life insurance",
                     },
                     {
                       id: "option2",
-                      title: "Life insurance",
-                      description: "Description for life insurance",
+                      title: "General insurance",
+                      description: "Description for General insurance",
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        };
+
+        const interactiveLifeInsuranceMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "interactive",
+          interactive: {
+            type: "list",
+            header: {
+              type: "text",
+              text: "Menu Options",
+            },
+            body: {
+              text: "Please choose an option:",
+            },
+            footer: {
+              text: "Select an option from the list below",
+            },
+            action: {
+              button: "Select",
+              sections: [
+                {
+                  title: "Menu",
+                  rows: [
+                    {
+                      id: "option1",
+                      title: "Term insurance",
+                      description: "Description for Term insurance",
+                    },
+                    {
+                      id: "option2",
+                      title: "Endowment",
+                      description: "Description for Endowment",
+                    },
+                    {
+                      id: "option3",
+                      title: "Unitlinked",
+                      description: "Description for Unitlinked",
+                    },
+                    {
+                      id: "option4",
+                      title: "Pension",
+                      description: "Description for Pension",
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        };
+        const interactiveGeneralInsuranceMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "interactive",
+          interactive: {
+            type: "list",
+            header: {
+              type: "text",
+              text: "Menu Options",
+            },
+            body: {
+              text: "Please choose an option:",
+            },
+            footer: {
+              text: "Select an option from the list below",
+            },
+            action: {
+              button: "Select",
+              sections: [
+                {
+                  title: "Menu",
+                  rows: [
+                    {
+                      id: "option1",
+                      title: "Motor insurance",
+                      description: "Description for Motor insurance",
+                    },
+                    {
+                      id: "option2",
+                      title: "Health insurance",
+                      description: "Description for Health insurance",
+                    },
+                    {
+                      id: "option3",
+                      title: "Travel insurance",
+                      description: "Description for Travel insurance",
                     },
                   ],
                 },
@@ -118,7 +210,11 @@ app.post("/webhook", (req, res) => {
         } else if (msgBody.toLowerCase() === "temp") {
           sendWhatsAppMessage(tempMessage);
         } else if (msgBody.toLowerCase() === "interactive") {
-          sendWhatsAppMessage(interactiveMessage);
+          sendWhatsAppMessage(interactiveMainMessage);
+        } else if (selectedOptionId === "option1") {
+          sendWhatsAppMessage(interactiveLifeInsuranceMessage);
+        } else if (selectedOptionId === "option2") {
+          sendWhatsAppMessage(interactiveGeneralInsuranceMessage);
         } else {
           if (msgBody != "") {
             responseText =
