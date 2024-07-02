@@ -59,7 +59,7 @@ app.post("/webhook", (req, res) => {
             },
             components: [
               {
-                type: "body",
+                type: "header",
                 parameters: [
                   {
                     type: "text",
