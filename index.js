@@ -60,6 +60,21 @@ app.get("/webhook", (req, res) => {
     },
   };
 
+  const termInsuranceGenderMessage = {
+    messaging_product: "whatsapp",
+    to: "919133007708",
+    type: "interactive",
+    interactive: {
+      type: "location_request_message",
+      body: {
+        text: "Please choose an option:",
+      },
+      action: {
+        name: "send_location",
+      },
+    },
+  };
+
   // const temparr = ["919133007708", "918106438172", "919494261853"];
 
   // const sendmultiple = (temparr, responseMessage2) => {
@@ -70,7 +85,7 @@ app.get("/webhook", (req, res) => {
   //   });
   // };
   // sendmultiple(temparr, responseMessage2);
-  sendWhatsAppMessage(responseMessage2);
+  sendWhatsAppMessage(termInsuranceGenderMessage);
   res.sendStatus(200);
 });
 

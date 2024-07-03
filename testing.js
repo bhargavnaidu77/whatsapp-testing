@@ -8,20 +8,13 @@ const port = 4000;
 app.use(bodyParser.json());
 
 const dateFormatRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-
-// Function to validate date format and value
 function isValidDateOfBirth(input) {
   if (!input.match(dateFormatRegex)) {
-    return false; // Format doesn't match DD/MM/YYYY
+    return false;
   }
-
-  // Extract day, month, year from input
   const [, day, month, year] = input.match(dateFormatRegex);
-
-  // Create a Date object and validate
   const date = new Date(`${year}-${month}-${day}`); // Use YYYY-MM-DD format for compatibility
   const isValid = !isNaN(date.getTime()); // Check if date is valid
-
   return isValid;
 }
 function isValidIncome(input) {
@@ -74,7 +67,7 @@ app.post("/webhook", (req, res) => {
             );
           } else if (interactiveMessage.type === "buttons_reply") {
             var selectedButtonId = interactiveMessage.buttons_reply.id;
-            var selectedButtonText = interactiveMessage.buttons_reply.text;
+            var selectedButtonText = interactiveMessage.buttons_reply.title;
           }
         }
         const interactiveMainMessage = {
@@ -170,7 +163,7 @@ app.post("/webhook", (req, res) => {
           to: from,
           type: "interactive",
           interactive: {
-            type: "buttons",
+            type: "button",
             body: {
               text: "Please choose an option:",
             },
@@ -178,15 +171,20 @@ app.post("/webhook", (req, res) => {
               text: "Select one of the buttons below",
             },
             action: {
-              button: "Select",
               buttons: [
                 {
-                  id: "Maleoption-L2",
-                  text: "Male",
+                  type: "reply",
+                  reply: {
+                    id: "Maleoption-L2",
+                    title: "Male",
+                  },
                 },
                 {
-                  id: "Femaleoption-L2",
-                  text: "Female",
+                  type: "reply",
+                  reply: {
+                    id: "Femaleoption-L2",
+                    title: "Female",
+                  },
                 },
               ],
             },
@@ -213,7 +211,7 @@ app.post("/webhook", (req, res) => {
           to: from,
           type: "interactive",
           interactive: {
-            type: "buttons",
+            type: "button",
             body: {
               text: "Smoker/Drinker",
             },
@@ -221,15 +219,20 @@ app.post("/webhook", (req, res) => {
               text: "Select one of the buttons below",
             },
             action: {
-              button: "Select",
               buttons: [
                 {
-                  id: "SmokerYesoption-L2",
-                  text: "Yes",
+                  type: "reply",
+                  reply: {
+                    id: "SmokerYesoption-L2",
+                    title: "Yes",
+                  },
                 },
                 {
-                  id: "SmokerNooption-L2",
-                  text: "No",
+                  type: "reply",
+                  reply: {
+                    id: "SmokerNooption-L2",
+                    title: "No",
+                  },
                 },
               ],
             },
