@@ -6,7 +6,6 @@ const app = express();
 const port = 4000;
 
 app.use(bodyParser.json());
-let count = 0;
 let termInsuranceData = {
   Gender: "",
   DOB: "",
@@ -30,8 +29,9 @@ function isValidIncome(input) {
   const income = parseFloat(input);
   return /^\d+$/.test(input) && parseInt(input, 10) > 0;
 }
+
 function isValidIndianPhoneNumber(input) {
-  return /^\+91[6-9]\d{9}$/.test(input);
+  return /^[6-9]\d{9}$/.test(input);
 }
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -339,13 +339,12 @@ app.post("/webhook", (req, res) => {
           },
         };
         let responseText;
-        if (msgBody.toLowerCase() === "hello") {
-          responseText = "Hi there! How can I help you today?";
-        } else if (msgBody.toLowerCase() === "bye") {
-          responseText = "Goodbye! Have a great day!";
-        } else if (msgBody.toLowerCase() === "temp") {
+        if (msgBody.toLowerCase() === "temp") {
           sendWhatsAppMessage(tempMessage);
-        } else if (msgBody.toLowerCase() === "interactive") {
+        } else if (
+          (msgBody.toLowerCase() === "hello") |
+          (msgBody.toLowerCase() === "hi")
+        ) {
           sendWhatsAppMessage(interactiveMainMessage);
           count = 1;
         } else if (selectedOptionId === "Lifeoption-L1") {
@@ -386,8 +385,8 @@ app.post("/webhook", (req, res) => {
           termInsuranceData.ContactNo = msgBody;
           count = 8;
         } else if (isValidEmail(msgBody) && count === 8) {
-          sendWhatsAppMessage(FinalTestMessage);
           termInsuranceData.EmailId = msgBody;
+          sendWhatsAppMessage(FinalTestMessage);
           console.log(termInsuranceData);
           count = 0;
         } else {
