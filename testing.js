@@ -82,12 +82,14 @@ app.post("/webhook", async (req, res) => {
         if (message.type === "image") {
           const imageId = message.image.id;
           const imageUrl = await getMediaUrl(imageId);
+          console.log(`Media id: ${imageId}`);
           console.log(`Received image: ${imageUrl}`);
         }
         if (message.type === "document") {
           const documentId = message.document.id;
           const documentFilename = message.document.filename;
           const documentUrl = await getMediaUrl(documentId);
+          console.log(`document Media id: ${documentId}`);
           console.log(
             `Received document filename : ${documentFilename} document url: ${documentUrl}`
           );
