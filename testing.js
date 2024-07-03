@@ -7,6 +7,33 @@ const port = 4000;
 
 app.use(bodyParser.json());
 
+const dateFormatRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+// Function to validate date format and value
+function isValidDateOfBirth(input) {
+  if (!input.match(dateFormatRegex)) {
+    return false; // Format doesn't match DD/MM/YYYY
+  }
+
+  // Extract day, month, year from input
+  const [, day, month, year] = input.match(dateFormatRegex);
+
+  // Create a Date object and validate
+  const date = new Date(`${year}-${month}-${day}`); // Use YYYY-MM-DD format for compatibility
+  const isValid = !isNaN(date.getTime()); // Check if date is valid
+
+  return isValid;
+}
+function isValidIncome(input) {
+  const income = parseFloat(input);
+  return /^\d+$/.test(input) && parseInt(input, 10) > 0;
+}
+function isValidIndianPhoneNumber(input) {
+  return /^[6-9]\d{9}$/.test(input);
+}
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 // Verification endpoint to validate webhook
 app.get("/webhook", (req, res) => {
   const VERIFY_TOKEN = "YOUR_VERIFY_TOKEN"; // Replace with your verify token
@@ -45,6 +72,9 @@ app.post("/webhook", (req, res) => {
             console.log(
               `User selected option: ${selectedOptionId} - ${selectedOptionTitle}`
             );
+          } else if (interactiveMessage.type === "buttons_reply") {
+            var selectedButtonId = interactiveMessage.buttons_reply.id;
+            var selectedButtonText = interactiveMessage.buttons_reply.text;
           }
         }
         const interactiveMainMessage = {
@@ -70,12 +100,12 @@ app.post("/webhook", (req, res) => {
                   title: "Menu",
                   rows: [
                     {
-                      id: "lifeoption-L1",
+                      id: "Lifeoption-L1",
                       title: "Life insurance",
                       description: "Description for Life insurance",
                     },
                     {
-                      id: "genoption-L1",
+                      id: "Genoption-L1",
                       title: "General insurance",
                       description: "Description for General insurance",
                     },
@@ -109,7 +139,7 @@ app.post("/webhook", (req, res) => {
                   title: "Menu",
                   rows: [
                     {
-                      id: "term-insuranceoption-L2",
+                      id: "Term-insuranceoption-L2",
                       title: "Term insurance",
                       description: "Description for Term insurance",
                     },
@@ -134,6 +164,94 @@ app.post("/webhook", (req, res) => {
             },
           },
         };
+
+        const termInsuranceGenderMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "interactive",
+          interactive: {
+            type: "buttons",
+            body: {
+              text: "Please choose an option:",
+            },
+            footer: {
+              text: "Select one of the buttons below",
+            },
+            action: {
+              button: "Select",
+              buttons: [
+                {
+                  id: "Maleoption-L2",
+                  text: "Male",
+                },
+                {
+                  id: "Femaleoption-L2",
+                  text: "Female",
+                },
+              ],
+            },
+          },
+        };
+        const termInsuranceDOBMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "text",
+          text: {
+            body: "Enter Date Of Birth (format: DD/MM/YYYY)",
+          },
+        };
+        const termInsuranceIncomeMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "text",
+          text: {
+            body: "Enter Income (format: Integers only ) e.g: 40000",
+          },
+        };
+        const termInsuranceSmokerOrDrinkerMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "interactive",
+          interactive: {
+            type: "buttons",
+            body: {
+              text: "Smoker/Drinker",
+            },
+            footer: {
+              text: "Select one of the buttons below",
+            },
+            action: {
+              button: "Select",
+              buttons: [
+                {
+                  id: "SmokerYesoption-L2",
+                  text: "Yes",
+                },
+                {
+                  id: "SmokerNooption-L2",
+                  text: "No",
+                },
+              ],
+            },
+          },
+        };
+        const termInsuranceContactMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "text",
+          text: {
+            body: "Enter your phone number",
+          },
+        };
+        const termInsuranceEmailMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "text",
+          text: {
+            body: "Enter your Email",
+          },
+        };
+
         const interactiveGeneralInsuranceMessage = {
           messaging_product: "whatsapp",
           to: from,
@@ -200,6 +318,22 @@ app.post("/webhook", (req, res) => {
           },
         };
         // Prepare a response based on the received message
+        let termInsuranceData = {
+          Gender: "",
+          DOB: "",
+          Income: "",
+          Smoker: "",
+          ContactNo: "",
+          EmailId: "",
+        };
+        const FinalTestMessage = {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "text",
+          text: {
+            body: `Check your details\n ${termInsuranceData}`,
+          },
+        };
         let responseText;
         if (msgBody.toLowerCase() === "hello") {
           responseText = "Hi there! How can I help you today?";
@@ -209,10 +343,37 @@ app.post("/webhook", (req, res) => {
           sendWhatsAppMessage(tempMessage);
         } else if (msgBody.toLowerCase() === "interactive") {
           sendWhatsAppMessage(interactiveMainMessage);
-        } else if (selectedOptionId === "lifeoption-L1") {
+        } else if (selectedOptionId === "Lifeoption-L1") {
           sendWhatsAppMessage(interactiveLifeInsuranceMessage);
-        } else if (selectedOptionId === "genoption-L1") {
+        } else if (selectedOptionId === "Genoption-L1") {
           sendWhatsAppMessage(interactiveGeneralInsuranceMessage);
+        } else if (selectedOptionId === "Term-insuranceoption-L2") {
+          sendWhatsAppMessage(termInsuranceGenderMessage);
+        } else if (
+          (selectedButtonId === "Maleoption-L2") |
+          (selectedButtonId === "Femaleoption-L2")
+        ) {
+          sendWhatsAppMessage(termInsuranceDOBMessage);
+          termInsuranceData.Gender = selectedButtonText;
+        } else if (isValidDateOfBirth(msgBody)) {
+          sendWhatsAppMessage(termInsuranceIncomeMessage);
+          termInsuranceData.DOB = msgBody;
+        } else if (isValidIncome(msgBody)) {
+          sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage);
+          termInsuranceData.Income = msgBody;
+        } else if (
+          (selectedButtonId === "SmokerYes-L2") |
+          (selectedButtonId === "SmokerNo-L2")
+        ) {
+          sendWhatsAppMessage(termInsuranceContactMessage);
+          termInsuranceData.Smoker = selectedButtonText;
+        } else if (isValidIndianPhoneNumber(msgBody)) {
+          sendWhatsAppMessage(termInsuranceEmailMessage);
+          termInsuranceData.ContactNo = msgBody;
+        } else if (isValidEmail(msgBody)) {
+          sendWhatsAppMessage(FinalTestMessage);
+          termInsuranceData.EmailId = msgBody;
+          console.log(termInsuranceData);
         } else {
           if (msgBody != "") {
             responseText =

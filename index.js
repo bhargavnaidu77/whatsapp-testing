@@ -70,7 +70,7 @@ app.get("/webhook", (req, res) => {
   //   });
   // };
   // sendmultiple(temparr, responseMessage2);
-  sendWhatsAppMessage(data);
+  sendWhatsAppMessage(responseMessage2);
   res.sendStatus(200);
 });
 
