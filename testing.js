@@ -51,7 +51,7 @@ app.get("/webhook", (req, res) => {
 });
 
 // Webhook endpoint to handle incoming messages
-app.post("/webhook", (req, res) => {
+app.post("/webhook", async (req, res) => {
   const entry = req.body.entry;
 
   if (entry && entry.length > 0) {
@@ -79,6 +79,35 @@ app.post("/webhook", (req, res) => {
             var selectedButtonText = interactiveMessage.button_reply.title;
           }
         }
+        if (message.type === "image") {
+          const imageId = message.image.id;
+          const imageUrl = await getMediaUrl(imageId);
+          console.log(`Received image: ${imageUrl}`);
+        }
+        if (receivedMessage.type === "document") {
+          const documentId = receivedMessage.document.id;
+          const documentFilename = receivedMessage.document.filename;
+          const documentUrl = await getMediaUrl(documentId);
+          console.log(
+            `Received document filename : ${documentFilename} document url: ${documentUrl}`
+          );
+        }
+        async function getMediaUrl(mediaId) {
+          const token =
+            "EAAXr5E4DbWoBO9r4e6MZCxMY3udwZBZBRZBprGnNj1TZAmkbxND6F1YJAv2NMmHHI6t5UEqBLZC5DbZCPGudyCzqTb1Jg5CHE4XR3mDagyI44ldhvpUmPg8uIDULquoCTBai3wuTXKS6qD3HIkszZAS2pJCgMsG10V5oLI10LLAjow6UBIOryq2LpBPg4CXiH4FK";
+          const url = `https://graph.facebook.com/v14.0/${mediaId}`;
+
+          try {
+            const response = await axios.get(url, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            return response.data.url;
+          } catch (error) {
+            console.error("Error getting media URL:", error);
+            return null;
+          }
+        }
+
         const interactiveMainMessage = {
           messaging_product: "whatsapp",
           to: from,
