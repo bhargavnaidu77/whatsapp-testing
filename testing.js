@@ -365,8 +365,8 @@ app.post("/webhook", (req, res) => {
           sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage);
           termInsuranceData.Income = msgBody;
         } else if (
-          (selectedButtonId === "SmokerYes-L2") |
-          (selectedButtonId === "SmokerNo-L2")
+          (selectedButtonId === "SmokerYesoption-L2") |
+          (selectedButtonId === "SmokerNooption-L2")
         ) {
           sendWhatsAppMessage(termInsuranceContactMessage);
           termInsuranceData.Smoker = selectedButtonText;
