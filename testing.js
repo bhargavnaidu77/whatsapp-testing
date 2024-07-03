@@ -350,46 +350,50 @@ app.post("/webhook", (req, res) => {
         } else if (selectedOptionId === "Lifeoption-L1") {
           sendWhatsAppMessage(interactiveLifeInsuranceMessage);
           count = 2;
-        } else if (selectedOptionId === "Genoption-L1") {
-          sendWhatsAppMessage(interactiveGeneralInsuranceMessage);
-          count = 2;
-        } else if (selectedOptionId === "Term-insuranceoption-L2") {
-          sendWhatsAppMessage(termInsuranceGenderMessage);
-          count = 3;
-        } else if (
-          (selectedButtonId === "Maleoption-L2") |
-            (selectedButtonId === "Femaleoption-L2") &&
-          count === 3
-        ) {
-          sendWhatsAppMessage(termInsuranceDOBMessage);
-          termInsuranceData.Gender = selectedButtonText;
-          count = 4;
-        } else if (isValidDateOfBirth(msgBody) && count === 4) {
-          sendWhatsAppMessage(termInsuranceIncomeMessage);
-          termInsuranceData.DOB = msgBody;
-          count = 5;
-        } else if (isValidIncome(msgBody) && count === 5) {
-          sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage);
-          termInsuranceData.Income = msgBody;
-          count = 6;
-        } else if (
-          (selectedButtonId === "SmokerYesoption-L2") |
-            (selectedButtonId === "SmokerNooption-L2") &&
-          count === 6
-        ) {
-          sendWhatsAppMessage(termInsuranceContactMessage);
-          termInsuranceData.Smoker = selectedButtonText;
-          count = 7;
-        } else if (isValidIndianPhoneNumber(msgBody) && count === 7) {
-          sendWhatsAppMessage(termInsuranceEmailMessage);
-          termInsuranceData.ContactNo = msgBody;
-          count = 8;
-        } else if (isValidEmail(msgBody) && count === 8) {
-          sendWhatsAppMessage(FinalTestMessage);
-          termInsuranceData.EmailId = msgBody;
-          console.log(termInsuranceData);
-          count = 0;
-        } else {
+          if (selectedOptionId === "Term-insuranceoption-L2") {
+            sendWhatsAppMessage(termInsuranceGenderMessage);
+            count = 3;
+          } else if (selectedOptionId === "Genoption-L1") {
+            sendWhatsAppMessage(interactiveGeneralInsuranceMessage);
+            count = 2;
+          }
+          // } else if (selectedOptionId === "Term-insuranceoption-L2") {
+          //   sendWhatsAppMessage(termInsuranceGenderMessage);
+          //   count = 3;
+          // } else if (
+          //   (selectedButtonId === "Maleoption-L2") |
+          //     (selectedButtonId === "Femaleoption-L2") &&
+          //   count === 3
+          // ) {
+          //   sendWhatsAppMessage(termInsuranceDOBMessage);
+          //   termInsuranceData.Gender = selectedButtonText;
+          //   count = 4;
+          // } else if (isValidDateOfBirth(msgBody) && count === 4) {
+          //   sendWhatsAppMessage(termInsuranceIncomeMessage);
+          //   termInsuranceData.DOB = msgBody;
+          //   count = 5;
+          // } else if (isValidIncome(msgBody) && count === 5) {
+          //   sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage);
+          //   termInsuranceData.Income = msgBody;
+          //   count = 6;
+          // } else if (
+          //   (selectedButtonId === "SmokerYesoption-L2") |
+          //     (selectedButtonId === "SmokerNooption-L2") &&
+          //   count === 6
+          // ) {
+          //   sendWhatsAppMessage(termInsuranceContactMessage);
+          //   termInsuranceData.Smoker = selectedButtonText;
+          //   count = 7;
+          // } else if (isValidIndianPhoneNumber(msgBody) && count === 7) {
+          //   sendWhatsAppMessage(termInsuranceEmailMessage);
+          //   termInsuranceData.ContactNo = msgBody;
+          //   count = 8;
+          // } else if (isValidEmail(msgBody) && count === 8) {
+          //   sendWhatsAppMessage(FinalTestMessage);
+          //   termInsuranceData.EmailId = msgBody;
+          //   console.log(termInsuranceData);
+          //   count = 0;
+          // } else {
           if (msgBody != "") {
             responseText =
               "I'm not sure how to respond to that. Can you please rephrase?";
