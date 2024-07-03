@@ -7,6 +7,15 @@ const port = 4000;
 
 app.use(bodyParser.json());
 let count = 0;
+let termInsuranceData = {
+  Gender: "",
+  DOB: "",
+  Income: "",
+  Smoker: "",
+  ContactNo: "",
+  EmailId: "",
+};
+
 const dateFormatRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 function isValidDateOfBirth(input) {
   if (!input.match(dateFormatRegex)) {
@@ -321,20 +330,12 @@ app.post("/webhook", (req, res) => {
           },
         };
         // Prepare a response based on the received message
-        let termInsuranceData = {
-          Gender: "",
-          DOB: "",
-          Income: "",
-          Smoker: "",
-          ContactNo: "",
-          EmailId: "",
-        };
         const FinalTestMessage = {
           messaging_product: "whatsapp",
           to: from,
           type: "text",
           text: {
-            body: `Check your details\n ${termInsuranceData}`,
+            body: `Gender: ${termInsuranceData.Gender}\nDOB: ${termInsuranceData.DOB}\nIncome: ${termInsuranceData.Income}\nSmoker: ${termInsuranceData.Smoker}\nContactNo: ${termInsuranceData.ContactNo}\nEmailId: ${termInsuranceData.EmailId}`,
           },
         };
         let responseText;
@@ -350,50 +351,46 @@ app.post("/webhook", (req, res) => {
         } else if (selectedOptionId === "Lifeoption-L1") {
           sendWhatsAppMessage(interactiveLifeInsuranceMessage);
           count = 2;
-          if (selectedOptionId === "Term-insuranceoption-L2") {
-            sendWhatsAppMessage(termInsuranceGenderMessage);
-            count = 3;
-          } else if (selectedOptionId === "Genoption-L1") {
-            sendWhatsAppMessage(interactiveGeneralInsuranceMessage);
-            count = 2;
-          }
-          // } else if (selectedOptionId === "Term-insuranceoption-L2") {
-          //   sendWhatsAppMessage(termInsuranceGenderMessage);
-          //   count = 3;
-          // } else if (
-          //   (selectedButtonId === "Maleoption-L2") |
-          //     (selectedButtonId === "Femaleoption-L2") &&
-          //   count === 3
-          // ) {
-          //   sendWhatsAppMessage(termInsuranceDOBMessage);
-          //   termInsuranceData.Gender = selectedButtonText;
-          //   count = 4;
-          // } else if (isValidDateOfBirth(msgBody) && count === 4) {
-          //   sendWhatsAppMessage(termInsuranceIncomeMessage);
-          //   termInsuranceData.DOB = msgBody;
-          //   count = 5;
-          // } else if (isValidIncome(msgBody) && count === 5) {
-          //   sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage);
-          //   termInsuranceData.Income = msgBody;
-          //   count = 6;
-          // } else if (
-          //   (selectedButtonId === "SmokerYesoption-L2") |
-          //     (selectedButtonId === "SmokerNooption-L2") &&
-          //   count === 6
-          // ) {
-          //   sendWhatsAppMessage(termInsuranceContactMessage);
-          //   termInsuranceData.Smoker = selectedButtonText;
-          //   count = 7;
-          // } else if (isValidIndianPhoneNumber(msgBody) && count === 7) {
-          //   sendWhatsAppMessage(termInsuranceEmailMessage);
-          //   termInsuranceData.ContactNo = msgBody;
-          //   count = 8;
-          // } else if (isValidEmail(msgBody) && count === 8) {
-          //   sendWhatsAppMessage(FinalTestMessage);
-          //   termInsuranceData.EmailId = msgBody;
-          //   console.log(termInsuranceData);
-          //   count = 0;
-          // } else {
+        } else if (selectedOptionId === "Genoption-L1") {
+          sendWhatsAppMessage(interactiveGeneralInsuranceMessage);
+          count = 2;
+        } else if (selectedOptionId === "Term-insuranceoption-L2") {
+          sendWhatsAppMessage(termInsuranceGenderMessage);
+          count = 3;
+        } else if (
+          (selectedButtonId === "Maleoption-L2") |
+            (selectedButtonId === "Femaleoption-L2") &&
+          count === 3
+        ) {
+          sendWhatsAppMessage(termInsuranceDOBMessage);
+          termInsuranceData.Gender = selectedButtonText;
+          count = 4;
+        } else if (isValidDateOfBirth(msgBody) && count === 4) {
+          sendWhatsAppMessage(termInsuranceIncomeMessage);
+          termInsuranceData.DOB = msgBody;
+          count = 5;
+        } else if (isValidIncome(msgBody) && count === 5) {
+          sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage);
+          termInsuranceData.Income = msgBody;
+          count = 6;
+        } else if (
+          (selectedButtonId === "SmokerYesoption-L2") |
+            (selectedButtonId === "SmokerNooption-L2") &&
+          count === 6
+        ) {
+          sendWhatsAppMessage(termInsuranceContactMessage);
+          termInsuranceData.Smoker = selectedButtonText;
+          count = 7;
+        } else if (isValidIndianPhoneNumber(msgBody) && count === 7) {
+          sendWhatsAppMessage(termInsuranceEmailMessage);
+          termInsuranceData.ContactNo = msgBody;
+          count = 8;
+        } else if (isValidEmail(msgBody) && count === 8) {
+          sendWhatsAppMessage(FinalTestMessage);
+          termInsuranceData.EmailId = msgBody;
+          console.log(termInsuranceData);
+          count = 0;
+        } else {
           if (msgBody != "") {
             responseText =
               "I'm not sure how to respond to that. Can you please rephrase?";
