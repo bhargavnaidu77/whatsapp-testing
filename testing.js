@@ -65,9 +65,9 @@ app.post("/webhook", (req, res) => {
             console.log(
               `User selected option: ${selectedOptionId} - ${selectedOptionTitle}`
             );
-          } else if (interactiveMessage.type === "buttons_reply") {
-            var selectedButtonId = interactiveMessage.buttons_reply.id;
-            var selectedButtonText = interactiveMessage.buttons_reply.title;
+          } else if (interactiveMessage.type === "button_reply") {
+            var selectedButtonId = interactiveMessage.button_reply.id;
+            var selectedButtonText = interactiveMessage.button_reply.title;
           }
         }
         const interactiveMainMessage = {
