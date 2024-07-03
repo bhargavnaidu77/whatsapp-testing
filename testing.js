@@ -6,7 +6,7 @@ const app = express();
 const port = 4000;
 
 app.use(bodyParser.json());
-
+let count = 0;
 const dateFormatRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 function isValidDateOfBirth(input) {
   if (!input.match(dateFormatRegex)) {
@@ -338,7 +338,6 @@ app.post("/webhook", (req, res) => {
           },
         };
         let responseText;
-        let count = 0;
         if (msgBody.toLowerCase() === "hello") {
           responseText = "Hi there! How can I help you today?";
         } else if (msgBody.toLowerCase() === "bye") {
