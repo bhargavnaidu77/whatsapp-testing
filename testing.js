@@ -1,11 +1,31 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const axios = require("axios");
+import express from "express";
+import bodyParser from "body-parser";
+import axios from "axios";
+import cors from "cors";
+import { fileURLToPath } from "url";
+import { interactiveMainMessage } from "./templates/Main_templates/MainMesage.js";
+import { interactiveLifeInsuranceMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
+import { termInsuranceGenderMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
+import { termInsuranceDOBMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
+import { termInsuranceIncomeMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
+import { termInsuranceSmokerOrDrinkerMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
+import { termInsuranceContactMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
+import { termInsuranceEmailMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
+import { interactiveGeneralInsuranceMessage } from "./templates/General_insurance_templates/GeneralInsuranceMessages.js";
+import { isValidDateOfBirth } from "./helpers/Validations.js";
+import { isValidIncome } from "./helpers/Validations.js";
+import { isValidIndianPhoneNumber } from "./helpers/Validations.js";
+import { isValidEmail } from "./helpers/Validations.js";
 
 const app = express();
-const port = 4000;
-
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+const port = 6000;
 app.use(bodyParser.json());
+
 let termInsuranceData = {
   Gender: "",
   DOB: "",
@@ -14,29 +34,10 @@ let termInsuranceData = {
   ContactNo: "",
   EmailId: "",
 };
-
-const dateFormatRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-function isValidDateOfBirth(input) {
-  if (!input.match(dateFormatRegex)) {
-    return false;
-  }
-  const [, day, month, year] = input.match(dateFormatRegex);
-  const date = new Date(`${year}-${month}-${day}`); // Use YYYY-MM-DD format for compatibility
-  const isValid = !isNaN(date.getTime()); // Check if date is valid
-  return isValid;
-}
-function isValidIncome(input) {
-  const income = parseFloat(input);
-  return /^\d+$/.test(input) && parseInt(input, 10) > 0;
-}
-
-function isValidIndianPhoneNumber(input) {
-  return /^[6-9]\d{9}$/.test(input);
-}
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
 // Verification endpoint to validate webhook
+app.get("/", (req, res) => {
+  res.status(200).send("server running");
+});
 app.get("/webhook", (req, res) => {
   const VERIFY_TOKEN = "YOUR_VERIFY_TOKEN"; // Replace with your verify token
   const mode = req.query["hub.mode"];
@@ -53,7 +54,6 @@ app.get("/webhook", (req, res) => {
 // Webhook endpoint to handle incoming messages
 app.post("/webhook", async (req, res) => {
   const entry = req.body.entry;
-
   if (entry && entry.length > 0) {
     const changes = entry[0].changes;
     if (changes && changes.length > 0) {
@@ -79,265 +79,14 @@ app.post("/webhook", async (req, res) => {
             var selectedButtonText = interactiveMessage.button_reply.title;
           }
         }
-        if (message.type === "image") {
-          const imageId = message.image.id;
-          const imageUrl = await getMediaUrl(imageId);
-          console.log(`Media id: ${imageId}`);
-          console.log(`Received image: ${imageUrl}`);
+        if (message.type === "image" || message.type === "document") {
+          const mediaId = message.image
+            ? message.image.id
+            : message.document.id;
+          console.log(`mediaId:- ${mediaId}`);
+          const url = `https://graph.facebook.com/v20.0/${mediaId}`;
+          console.log(`URL:- ${url}`);
         }
-        if (message.type === "document") {
-          const documentId = message.document.id;
-          const documentFilename = message.document.filename;
-          const documentUrl = await getMediaUrl(documentId);
-          console.log(`document Media id: ${documentId}`);
-          console.log(
-            `Received document filename : ${documentFilename} document url: ${documentUrl}`
-          );
-        }
-        async function getMediaUrl(mediaId) {
-          const token =
-            "EAAXr5E4DbWoBO9r4e6MZCxMY3udwZBZBRZBprGnNj1TZAmkbxND6F1YJAv2NMmHHI6t5UEqBLZC5DbZCPGudyCzqTb1Jg5CHE4XR3mDagyI44ldhvpUmPg8uIDULquoCTBai3wuTXKS6qD3HIkszZAS2pJCgMsG10V5oLI10LLAjow6UBIOryq2LpBPg4CXiH4FK";
-          const url = `https://graph.facebook.com/v14.0/${mediaId}`;
-
-          try {
-            const response = await axios.get(url, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            return response.data.url;
-          } catch (error) {
-            console.error("Error getting media URL:", error);
-            return null;
-          }
-        }
-
-        const interactiveMainMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "interactive",
-          interactive: {
-            type: "list",
-            header: {
-              type: "text",
-              text: "Menu Options",
-            },
-            body: {
-              text: "Please choose an option:",
-            },
-            footer: {
-              text: "Select an option from the list below",
-            },
-            action: {
-              button: "Select",
-              sections: [
-                {
-                  title: "Menu",
-                  rows: [
-                    {
-                      id: "Lifeoption-L1",
-                      title: "Life insurance",
-                      description: "Description for Life insurance",
-                    },
-                    {
-                      id: "Genoption-L1",
-                      title: "General insurance",
-                      description: "Description for General insurance",
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-        };
-
-        const interactiveLifeInsuranceMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "interactive",
-          interactive: {
-            type: "list",
-            header: {
-              type: "text",
-              text: "Menu Options",
-            },
-            body: {
-              text: "Please choose an option:",
-            },
-            footer: {
-              text: "Select an option from the list below",
-            },
-            action: {
-              button: "Select",
-              sections: [
-                {
-                  title: "Menu",
-                  rows: [
-                    {
-                      id: "Term-insuranceoption-L2",
-                      title: "Term insurance",
-                      description: "Description for Term insurance",
-                    },
-                    {
-                      id: "Endowmentoption-L2",
-                      title: "Endowment",
-                      description: "Description for Endowment",
-                    },
-                    {
-                      id: "Unitlinkedoption-L2",
-                      title: "Unitlinked",
-                      description: "Description for Unitlinked",
-                    },
-                    {
-                      id: "Pensionoption-L2",
-                      title: "Pension",
-                      description: "Description for Pension",
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-        };
-
-        const termInsuranceGenderMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "interactive",
-          interactive: {
-            type: "button",
-            body: {
-              text: "Please choose an option:",
-            },
-            footer: {
-              text: "Select one of the buttons below",
-            },
-            action: {
-              buttons: [
-                {
-                  type: "reply",
-                  reply: {
-                    id: "Maleoption-L2",
-                    title: "Male",
-                  },
-                },
-                {
-                  type: "reply",
-                  reply: {
-                    id: "Femaleoption-L2",
-                    title: "Female",
-                  },
-                },
-              ],
-            },
-          },
-        };
-        const termInsuranceDOBMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "text",
-          text: {
-            body: "Enter Date Of Birth (format: DD/MM/YYYY)",
-          },
-        };
-        const termInsuranceIncomeMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "text",
-          text: {
-            body: "Enter Income (format: Integers only ) e.g: 40000",
-          },
-        };
-        const termInsuranceSmokerOrDrinkerMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "interactive",
-          interactive: {
-            type: "button",
-            body: {
-              text: "Smoker/Drinker",
-            },
-            footer: {
-              text: "Select one of the buttons below",
-            },
-            action: {
-              buttons: [
-                {
-                  type: "reply",
-                  reply: {
-                    id: "SmokerYesoption-L2",
-                    title: "Yes",
-                  },
-                },
-                {
-                  type: "reply",
-                  reply: {
-                    id: "SmokerNooption-L2",
-                    title: "No",
-                  },
-                },
-              ],
-            },
-          },
-        };
-        const termInsuranceContactMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "text",
-          text: {
-            body: "Enter your phone number (format: +91xxxxxxxxxx)",
-          },
-        };
-        const termInsuranceEmailMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "text",
-          text: {
-            body: "Enter your Email",
-          },
-        };
-
-        const interactiveGeneralInsuranceMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "interactive",
-          interactive: {
-            type: "list",
-            header: {
-              type: "text",
-              text: "Menu Options",
-            },
-            body: {
-              text: "Please choose an option:",
-            },
-            footer: {
-              text: "Select an option from the list below",
-            },
-            action: {
-              button: "Select",
-              sections: [
-                {
-                  title: "Menu",
-                  rows: [
-                    {
-                      id: "Motor-insuranceoption-L2",
-                      title: "Motor insurance",
-                      description: "Description for Motor insurance",
-                    },
-                    {
-                      id: "Health-insuranceoption-L2",
-                      title: "Health insurance",
-                      description: "Description for Health insurance",
-                    },
-                    {
-                      id: "Travel-insuranceoption-L2",
-                      title: "Travel insurance",
-                      description: "Description for Travel insurance",
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-        };
         const tempMessage = {
           messaging_product: "whatsapp",
           to: from,
@@ -373,57 +122,48 @@ app.post("/webhook", async (req, res) => {
         if (msgBody.toLowerCase() === "temp") {
           sendWhatsAppMessage(tempMessage);
         } else if (
-          (msgBody.toLowerCase() === "hello") |
-          (msgBody.toLowerCase() === "hi")
+          msgBody.toLowerCase().includes("hello") |
+          msgBody.toLowerCase().includes("hi")
         ) {
-          sendWhatsAppMessage(interactiveMainMessage);
-          count = 1;
-        } else if (selectedOptionId === "Lifeoption-L1") {
-          sendWhatsAppMessage(interactiveLifeInsuranceMessage);
-          count = 2;
-        } else if (selectedOptionId === "Genoption-L1") {
-          sendWhatsAppMessage(interactiveGeneralInsuranceMessage);
-          count = 2;
-        } else if (selectedOptionId === "Term-insuranceoption-L2") {
-          sendWhatsAppMessage(termInsuranceGenderMessage);
-          count = 3;
+          sendWhatsAppMessage(interactiveMainMessage(from));
+        } else if (selectedOptionId === "LifeOption-L1") {
+          sendWhatsAppMessage(interactiveLifeInsuranceMessage(from));
+        } else if (selectedOptionId === "GenOption-L1") {
+          sendWhatsAppMessage(interactiveGeneralInsuranceMessage(from));
+        } else if (selectedOptionId === "TermInsuranceOption-L2") {
+          sendWhatsAppMessage(termInsuranceGenderMessage(from));
         } else if (
-          (selectedButtonId === "Maleoption-L2") |
-            (selectedButtonId === "Femaleoption-L2") &&
-          count === 3
+          (selectedButtonId === "MaleOption-L2") |
+          (selectedButtonId === "FemaleOption-L2")
         ) {
-          sendWhatsAppMessage(termInsuranceDOBMessage);
+          sendWhatsAppMessage(termInsuranceDOBMessage(from));
           termInsuranceData.Gender = selectedButtonText;
-          count = 4;
-        } else if (isValidDateOfBirth(msgBody) && count === 4) {
-          sendWhatsAppMessage(termInsuranceIncomeMessage);
+        } else if (isValidDateOfBirth(msgBody)) {
+          sendWhatsAppMessage(termInsuranceIncomeMessage(from));
           termInsuranceData.DOB = msgBody;
-          count = 5;
-        } else if (isValidIncome(msgBody) && count === 5) {
-          sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage);
-          termInsuranceData.Income = msgBody;
-          count = 6;
-        } else if (
-          (selectedButtonId === "SmokerYesoption-L2") |
-            (selectedButtonId === "SmokerNooption-L2") &&
-          count === 6
-        ) {
-          sendWhatsAppMessage(termInsuranceContactMessage);
-          termInsuranceData.Smoker = selectedButtonText;
-          count = 7;
-        } else if (isValidIndianPhoneNumber(msgBody) && count === 7) {
-          sendWhatsAppMessage(termInsuranceEmailMessage);
+        } else if (isValidIndianPhoneNumber(msgBody)) {
+          sendWhatsAppMessage(termInsuranceEmailMessage(from));
           termInsuranceData.ContactNo = msgBody;
-          count = 8;
-        } else if (isValidEmail(msgBody) && count === 8) {
+        } else if (isValidIncome(msgBody)) {
+          sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage(from));
+          termInsuranceData.Income = msgBody;
+        } else if (
+          (selectedButtonId === "SmokerYesOption-L2") |
+          (selectedButtonId === "SmokerNoOption-L2")
+        ) {
+          sendWhatsAppMessage(termInsuranceContactMessage(from));
+          termInsuranceData.Smoker = selectedButtonText;
+        } else if (isValidEmail(msgBody)) {
           termInsuranceData.EmailId = msgBody;
-          sendWhatsAppMessage(FinalTestMessage);
           console.log(termInsuranceData);
-          count = 0;
+          sendWhatsAppMessage(FinalTestMessage);
         } else {
           if (msgBody != "") {
             responseText =
               "I'm not sure how to respond to that. Can you please rephrase?";
+          } else {
+            responseText =
+              "You Entered a wrong option. so please restart the conversation by sending Hi....";
           }
         }
 
@@ -446,9 +186,9 @@ app.post("/webhook", async (req, res) => {
 });
 
 const sendWhatsAppMessage = async (message) => {
-  const url = "https://graph.facebook.com/v14.0/397607813426011/messages";
+  const url = "https://graph.facebook.com/v20.0/366760906524912/messages";
   const token =
-    "EAAXr5E4DbWoBO9r4e6MZCxMY3udwZBZBRZBprGnNj1TZAmkbxND6F1YJAv2NMmHHI6t5UEqBLZC5DbZCPGudyCzqTb1Jg5CHE4XR3mDagyI44ldhvpUmPg8uIDULquoCTBai3wuTXKS6qD3HIkszZAS2pJCgMsG10V5oLI10LLAjow6UBIOryq2LpBPg4CXiH4FK";
+    "EAAXr5E4DbWoBOz6TZCAZCGFDPMYXtGDvqtCj6szL1Jm8NrnMdN7F8fG0ZBuWeA4dCJVTkwC31ylBubjmh04m3DPLECJWXP4LiPRypPMPxGrmrkCuZBC8Onkv0iZCKCJFk58FX4MPydSrHEXlIZCkzHgqAwlG4du7xmuZCHrew1dRy1rVpw9Q7HPbTVh0xw94uAA";
 
   try {
     const response = await axios.post(url, message, {
