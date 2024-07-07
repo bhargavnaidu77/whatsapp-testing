@@ -2,7 +2,6 @@ import express from "express";
 import bodyParser from "body-parser";
 import axios from "axios";
 import cors from "cors";
-import { fileURLToPath } from "url";
 import { interactiveMainMessage } from "./templates/Main_templates/MainMesage.js";
 import { interactiveLifeInsuranceMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
 import { termInsuranceGenderMessage } from "./templates/Life_insurance_templates/LifeInsuranceMessages.js";
@@ -16,24 +15,36 @@ import { isValidDateOfBirth } from "./helpers/Validations.js";
 import { isValidIncome } from "./helpers/Validations.js";
 import { isValidIndianPhoneNumber } from "./helpers/Validations.js";
 import { isValidEmail } from "./helpers/Validations.js";
-
+import {FinalTestMessage} from './templates/Final_message/FinalMessage.js';
+import {ConfirmOrEdit} from './templates/Final_message/FinalMessage.js';
 const app = express();
 app.use(
   cors({
     origin: "*",
   })
 );
-const port = 6000;
+const port = 3000;
 app.use(bodyParser.json());
 
-let termInsuranceData = {
-  Gender: "",
-  DOB: "",
-  Income: "",
-  Smoker: "",
-  ContactNo: "",
-  EmailId: "",
-};
+
+let termInsuranceData = [];
+function updateOrCreateObject(array, id, value, key) {
+  const index = array.findIndex(obj => obj.id === id);
+  const newObject = { id };
+  newObject[key] = value;
+  if (index !== -1) {
+      array[index] = { ...array[index], ...newObject };
+  } else {
+      array.push(newObject);
+  }
+  return array;
+}
+function findIndex(array,id){
+  const index = array.findIndex(obj => obj.id === id);
+  if (index !== -1) {
+    return array[index];
+} 
+}
 // Verification endpoint to validate webhook
 app.get("/", (req, res) => {
   res.status(200).send("server running");
@@ -109,15 +120,6 @@ app.post("/webhook", async (req, res) => {
             ],
           },
         };
-        // Prepare a response based on the received message
-        const FinalTestMessage = {
-          messaging_product: "whatsapp",
-          to: from,
-          type: "text",
-          text: {
-            body: `Gender: ${termInsuranceData.Gender}\nDOB: ${termInsuranceData.DOB}\nIncome: ${termInsuranceData.Income}\nSmoker: ${termInsuranceData.Smoker}\nContactNo: ${termInsuranceData.ContactNo}\nEmailId: ${termInsuranceData.EmailId}`,
-          },
-        };
         let responseText;
         if (msgBody.toLowerCase() === "temp") {
           sendWhatsAppMessage(tempMessage);
@@ -137,26 +139,38 @@ app.post("/webhook", async (req, res) => {
           (selectedButtonId === "FemaleOption-L2")
         ) {
           sendWhatsAppMessage(termInsuranceDOBMessage(from));
-          termInsuranceData.Gender = selectedButtonText;
+          updateOrCreateObject(termInsuranceData,from,selectedButtonText,'Gender');
         } else if (isValidDateOfBirth(msgBody)) {
           sendWhatsAppMessage(termInsuranceIncomeMessage(from));
-          termInsuranceData.DOB = msgBody;
+          updateOrCreateObject(termInsuranceData,from,msgBody,'DOB');
         } else if (isValidIndianPhoneNumber(msgBody)) {
           sendWhatsAppMessage(termInsuranceEmailMessage(from));
-          termInsuranceData.ContactNo = msgBody;
+          updateOrCreateObject(termInsuranceData,from,msgBody,'ContactNo');
         } else if (isValidIncome(msgBody)) {
           sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage(from));
-          termInsuranceData.Income = msgBody;
+          updateOrCreateObject(termInsuranceData,from,msgBody,'Income');
         } else if (
           (selectedButtonId === "SmokerYesOption-L2") |
           (selectedButtonId === "SmokerNoOption-L2")
         ) {
           sendWhatsAppMessage(termInsuranceContactMessage(from));
-          termInsuranceData.Smoker = selectedButtonText;
+          updateOrCreateObject(termInsuranceData,from,selectedButtonText,'Smoker');
         } else if (isValidEmail(msgBody)) {
-          termInsuranceData.EmailId = msgBody;
-          console.log(termInsuranceData);
-          sendWhatsAppMessage(FinalTestMessage);
+          updateOrCreateObject(termInsuranceData,from,msgBody,'Email');
+          const data=findIndex(termInsuranceData,from);
+          console.log(data);
+          sendWhatsAppMessage(FinalTestMessage(from,data));
+          sendWhatsAppMessage(ConfirmOrEdit(from));
+        }
+        else if (
+          (selectedButtonId === "ConfirmOption-L2") |
+          (selectedButtonId === "EditOption-L2")
+        ){
+          if(selectedButtonId === "ConfirmOption-L2"){
+            responseText = 'Thank you for choosing us.....'
+          }else{
+          sendWhatsAppMessage(interactiveMainMessage(from));
+          }
         } else {
           if (msgBody != "") {
             responseText =
@@ -181,15 +195,12 @@ app.post("/webhook", async (req, res) => {
       }
     }
   }
-
   res.sendStatus(200);
 });
-
 const sendWhatsAppMessage = async (message) => {
   const url = "https://graph.facebook.com/v20.0/366760906524912/messages";
   const token =
     "EAAXr5E4DbWoBOz6TZCAZCGFDPMYXtGDvqtCj6szL1Jm8NrnMdN7F8fG0ZBuWeA4dCJVTkwC31ylBubjmh04m3DPLECJWXP4LiPRypPMPxGrmrkCuZBC8Onkv0iZCKCJFk58FX4MPydSrHEXlIZCkzHgqAwlG4du7xmuZCHrew1dRy1rVpw9Q7HPbTVh0xw94uAA";
-
   try {
     const response = await axios.post(url, message, {
       headers: {
@@ -205,7 +216,6 @@ const sendWhatsAppMessage = async (message) => {
     );
   }
 };
-
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
