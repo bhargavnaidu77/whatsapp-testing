@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 // DB CONNECTION
 const sequelize = new sequelize_1.Sequelize("testdb", "root", "password", {
-    host: "192.168.29.69",
+    host: "localhost",
     dialect: "mysql",
     pool: {
         max: 5,
