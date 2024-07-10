@@ -2,7 +2,6 @@
   "name": "whatsapp",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "node testing.js"
   },
@@ -16,8 +15,15 @@
     "express": "^4.19.2",
     "fs": "^0.0.1-security",
     "fs-extra": "^11.2.0",
+    "mysql2": "^3.10.2",
     "node-fetch": "^3.3.2",
     "path": "^0.12.7",
+    "sequelize": "^6.37.3",
+    "tsc": "^2.0.4",
+    "typescript": "^5.5.3",
     "url": "^0.11.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21"
   }
 }

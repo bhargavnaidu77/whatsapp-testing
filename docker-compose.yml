@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  db:
+    image: testing-db-img:1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.mysql
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_HOST=localhost
+      - MYSQL_DATABASE=testdb
+      - MYSQL_ROOT_PASSWORD=password
+
+    networks:
+      - wtsi-network
+
+    container_name: "whatsapp-testing-db"
+
+networks:
+  wtsi-network:
+    external: false
+    labels:
+      keep: ""
+    name: wtsi-network

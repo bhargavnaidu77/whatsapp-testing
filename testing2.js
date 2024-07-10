@@ -17,13 +17,15 @@ import { isValidIndianPhoneNumber } from "./helpers/Validations.js";
 import { isValidEmail } from "./helpers/Validations.js";
 import { FinalTestMessage } from "./templates/Final_message/FinalMessage.js";
 import { ConfirmOrEdit } from "./templates/Final_message/FinalMessage.js";
+import sequelize from "./util/database.js";
 const app = express();
+sequelize.sync();
 app.use(
   cors({
     origin: "*",
   })
 );
-const port = 3000;
+const port = 5000;
 app.use(bodyParser.json());
 
 let termInsuranceData = [];
@@ -44,6 +46,15 @@ function findIndex(array, id) {
     return array[index];
   }
 }
+function findUser(array, id) {
+  const index = array.findIndex((obj) => obj.id === id);
+  if (index !== -1) {
+    return array[index];
+  } else {
+    return false;
+  }
+}
+
 // Verification endpoint to validate webhook
 app.get("/", (req, res) => {
   res.status(200).send("server running");
@@ -96,6 +107,12 @@ app.post("/webhook", async (req, res) => {
           const url = `https://graph.facebook.com/v20.0/${mediaId}`;
           console.log(`URL:- ${url}`);
         }
+        if (message.type === "reaction") {
+          console.log("Received a reaction:");
+          console.log(`Reaction: ${message.reaction}`);
+          console.log(`Message ID: ${message.message_id}`);
+          console.log(`Sender ID: ${message.from}`);
+        }
         const tempMessage = {
           messaging_product: "whatsapp",
           to: from,
@@ -119,12 +136,146 @@ app.post("/webhook", async (req, res) => {
           },
         };
         let responseText;
-        if (msgBody.toLowerCase() === "temp") {
-          sendWhatsAppMessage(tempMessage);
-        } else if (
-          msgBody.toLowerCase().includes("hello") |
-          msgBody.toLowerCase().includes("hi")
-        ) {
+        const existingUser = findUser(termInsuranceData, from);
+        if (existingUser) {
+          switch (existingUser.CurrentPath) {
+            case "welcome_section":
+              if (selectedOptionId === "LifeOption-L1") {
+                sendWhatsAppMessage(interactiveLifeInsuranceMessage(from));
+              } else if (selectedOptionId === "GenOption-L1") {
+                sendWhatsAppMessage(interactiveGeneralInsuranceMessage(from));
+              } else if (selectedOptionId === "TermInsuranceOption-L2") {
+                sendWhatsAppMessage(termInsuranceGenderMessage(from));
+              } else if (
+                (selectedButtonId === "MaleOption-L2") |
+                (selectedButtonId === "FemaleOption-L2")
+              ) {
+                sendWhatsAppMessage(termInsuranceDOBMessage(from));
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  selectedButtonText,
+                  "Gender"
+                );
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  "gender_section",
+                  "CurrentPath"
+                );
+              }
+              break;
+            case "gender_section":
+              if (isValidDateOfBirth(msgBody)) {
+                sendWhatsAppMessage(termInsuranceIncomeMessage(from));
+                updateOrCreateObject(termInsuranceData, from, msgBody, "DOB");
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  "dob_section",
+                  "CurrentPath"
+                );
+              } else {
+                responseText = "Enter valid date of birth";
+              }
+              break;
+            case "dob_section":
+              if (isValidIncome(msgBody)) {
+                sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage(from));
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  msgBody,
+                  "Income"
+                );
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  "income_section",
+                  "CurrentPath"
+                );
+              } else {
+                responseText = "Enter valid income";
+              }
+              break;
+            case "income_section":
+              if (
+                (selectedButtonId === "SmokerYesOption-L2") |
+                (selectedButtonId === "SmokerNoOption-L2")
+              ) {
+                sendWhatsAppMessage(termInsuranceContactMessage(from));
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  selectedButtonText,
+                  "Smoker"
+                );
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  "smoke_section",
+                  "CurrentPath"
+                );
+              } else {
+                responseText = "Choose one option";
+              }
+              break;
+            case "smoke_section":
+              if (isValidIndianPhoneNumber(msgBody)) {
+                sendWhatsAppMessage(termInsuranceEmailMessage(from));
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  msgBody,
+                  "ContactNo"
+                );
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  "contact_section",
+                  "CurrentPath"
+                );
+              } else {
+                responseText = "Enter valid phone number";
+              }
+              break;
+            case "contact_section":
+              if (isValidEmail(msgBody)) {
+                updateOrCreateObject(termInsuranceData, from, msgBody, "Email");
+                const data = findIndex(termInsuranceData, from);
+                console.log(data);
+                await sendWhatsAppMessage(FinalTestMessage(from, data));
+                sendWhatsAppMessage(ConfirmOrEdit(from));
+                updateOrCreateObject(
+                  termInsuranceData,
+                  from,
+                  "email_section",
+                  "CurrentPath"
+                );
+              } else {
+                responseText = "Enter valid Email";
+              }
+              break;
+            case "email_section":
+              if (
+                (selectedButtonId === "ConfirmOption-L2") |
+                (selectedButtonId === "EditOption-L2")
+              ) {
+                if (selectedButtonId === "ConfirmOption-L2") {
+                  responseText = "Thank you for choosing us.....";
+                } else {
+                  sendWhatsAppMessage(interactiveMainMessage(from));
+                  updateOrCreateObject(
+                    termInsuranceData,
+                    from,
+                    "welcome_section",
+                    "CurrentPath"
+                  );
+                }
+              }
+              break;
+          }
+        } else {
           sendWhatsAppMessage(interactiveMainMessage(from));
           updateOrCreateObject(
             termInsuranceData,
@@ -132,109 +283,15 @@ app.post("/webhook", async (req, res) => {
             "welcome_section",
             "CurrentPath"
           );
-        } else if (selectedOptionId === "LifeOption-L1") {
-          sendWhatsAppMessage(interactiveLifeInsuranceMessage(from));
-        } else if (selectedOptionId === "GenOption-L1") {
-          sendWhatsAppMessage(interactiveGeneralInsuranceMessage(from));
-        } else if (selectedOptionId === "TermInsuranceOption-L2") {
-          sendWhatsAppMessage(termInsuranceGenderMessage(from));
-        } else if (
-          (selectedButtonId === "MaleOption-L2") |
-          (selectedButtonId === "FemaleOption-L2")
-        ) {
-          sendWhatsAppMessage(termInsuranceDOBMessage(from));
-          updateOrCreateObject(
-            termInsuranceData,
-            from,
-            selectedButtonText,
-            "Gender"
-          );
-          updateOrCreateObject(
-            termInsuranceData,
-            from,
-            "gender_section",
-            "CurrentPath"
-          );
-        } else if (isValidDateOfBirth(msgBody)) {
-          sendWhatsAppMessage(termInsuranceIncomeMessage(from));
-          updateOrCreateObject(termInsuranceData, from, msgBody, "DOB");
-          updateOrCreateObject(
-            termInsuranceData,
-            from,
-            "dob_section",
-            "CurrentPath"
-          );
-        } else if (isValidIndianPhoneNumber(msgBody)) {
-          sendWhatsAppMessage(termInsuranceEmailMessage(from));
-          updateOrCreateObject(termInsuranceData, from, msgBody, "ContactNo");
-          updateOrCreateObject(
-            termInsuranceData,
-            from,
-            "contact_section",
-            "CurrentPath"
-          );
-        } else if (isValidIncome(msgBody)) {
-          sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage(from));
-          updateOrCreateObject(termInsuranceData, from, msgBody, "Income");
-          updateOrCreateObject(
-            termInsuranceData,
-            from,
-            "income_section",
-            "CurrentPath"
-          );
-        } else if (
-          (selectedButtonId === "SmokerYesOption-L2") |
-          (selectedButtonId === "SmokerNoOption-L2")
-        ) {
-          sendWhatsAppMessage(termInsuranceContactMessage(from));
-          updateOrCreateObject(
-            termInsuranceData,
-            from,
-            selectedButtonText,
-            "Smoker"
-          );
-          updateOrCreateObject(
-            termInsuranceData,
-            from,
-            "smoke_section",
-            "CurrentPath"
-          );
-        } else if (isValidEmail(msgBody)) {
-          updateOrCreateObject(termInsuranceData, from, msgBody, "Email");
-          const data = findIndex(termInsuranceData, from);
-          console.log(data);
-          await sendWhatsAppMessage(FinalTestMessage(from, data));
-          sendWhatsAppMessage(ConfirmOrEdit(from));
-          updateOrCreateObject(
-            termInsuranceData,
-            from,
-            "email_section",
-            "CurrentPath"
-          );
-        } else if (
-          (selectedButtonId === "ConfirmOption-L2") |
-          (selectedButtonId === "EditOption-L2")
-        ) {
-          if (selectedButtonId === "ConfirmOption-L2") {
-            responseText = "Thank you for choosing us.....";
-          } else {
-            sendWhatsAppMessage(interactiveMainMessage(from));
-            updateOrCreateObject(
-              termInsuranceData,
-              from,
-              "welcome_section",
-              "CurrentPath"
-            );
-          }
-        } else {
-          if (msgBody != "") {
-            responseText =
-              "I'm not sure how to respond to that. Can you please rephrase?";
-          } else {
-            responseText =
-              "You Entered a wrong option. so please restart the conversation by sending Hi....";
-          }
         }
+
+        // if (msgBody != "") {
+        //   responseText =
+        //     "I'm not sure how to respond to that. Can you please rephrase?";
+        // } else {
+        //   responseText =
+        //     "You Entered a wrong option. so please restart the conversation by sending Hi....";
+        // }
 
         const responseMessage = {
           messaging_product: "whatsapp",
