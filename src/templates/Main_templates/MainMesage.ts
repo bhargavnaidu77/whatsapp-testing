@@ -7,10 +7,10 @@ export const interactiveMainMessage = (from: string) => {
       type: "list",
       header: {
         type: "text",
-        text: "Menu",
+        text: "Insurance Menu",
       },
       body: {
-        text: "Please choose an option:",
+        text: "Please choose an insurance:",
       },
       footer: {
         text: "Select an option from the list below",

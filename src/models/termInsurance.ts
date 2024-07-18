@@ -14,7 +14,7 @@ interface TermInsuranceAttributes {
   sumInsured?: string;
   premiumPayingTerm?: string;
   PayingTerm?: string;
-  currentPath?: string;
+  currentPath?: string | null;
   submit?: boolean;
   isActive?: boolean;
   createdAt?: Date;

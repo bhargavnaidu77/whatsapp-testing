@@ -101,7 +101,7 @@ export const termInsuranceIncomeMessage = (from) => {
     to: from,
     type: "text",
     text: {
-      body: "Enter Income (format: Integers only ) e.g: 40000",
+      body: "Enter Annual Income (format: Integers only ) e.g: 40000",
     },
   };
 };

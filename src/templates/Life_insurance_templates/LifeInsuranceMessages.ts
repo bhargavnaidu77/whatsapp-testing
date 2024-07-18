@@ -7,10 +7,10 @@ export const interactiveLifeInsuranceMessage = (from: string) => {
       type: "list",
       header: {
         type: "text",
-        text: "Menu Options",
+        text: "Life Insurance Options",
       },
       body: {
-        text: "Please choose an option:",
+        text: "Please choose an life insurance option:",
       },
       footer: {
         text: "Select an option from the list below",
@@ -57,7 +57,7 @@ export const termInsuranceGenderMessage = (from: string) => {
     interactive: {
       type: "button",
       body: {
-        text: "Please choose an option:",
+        text: "Please choose gender of the person:",
       },
       footer: {
         text: "Select one of the buttons below",
@@ -147,7 +147,7 @@ export const termInsuranceContactMessage = (from: string) => {
     to: from,
     type: "text",
     text: {
-      body: "Enter your phone number",
+      body: "Enter insurance applicant phone number",
     },
   };
 };
@@ -158,7 +158,7 @@ export const termInsuranceEmailMessage = (from: string) => {
     to: from,
     type: "text",
     text: {
-      body: "Enter your Email",
+      body: "Enter insurance applicant email",
     },
   };
 };

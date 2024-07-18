@@ -6,7 +6,10 @@ import {
   isValidIncome,
   isValidIndianPhoneNumber,
 } from "./helpers/Validations";
-import { ConfirmOrEdit } from "./templates/Final_message/FinalMessage";
+import {
+  CancelMessage,
+  ConfirmOrEdit,
+} from "./templates/Final_message/FinalMessage";
 import { interactiveGeneralInsuranceMessage } from "./templates/General_insurance_templates/GeneralInsuranceMessages";
 import {
   interactiveLifeInsuranceMessage,
@@ -23,7 +26,6 @@ import { sendWhatsAppMessage } from "./util/sendWhatsappMessage";
 import sequelize from "./util/database";
 import Customer from "./models/custmerData";
 import TermInsurance from "./models/termInsurance";
-
 const app = express();
 sequelize.sync();
 const port = 5000;
@@ -120,57 +122,89 @@ app.post("/webhook", async (req: any, res: any) => {
       },
     });
     if (User) {
-      if (selectedOptionId === "LifeOption-L1") {
-        sendWhatsAppMessage(interactiveLifeInsuranceMessage(from));
-        try {
-          await Customer.update(
-            {
-              lifeInsurance: true,
-              generalInsurance: false,
-            },
-            {
-              where: {
-                userId: from,
-              },
+      switch (User.currentPath) {
+        case "main_section":
+          if (selectedOptionId === "LifeOption-L1") {
+            await sendWhatsAppMessage(interactiveLifeInsuranceMessage(from));
+            try {
+              await Customer.update(
+                {
+                  lifeInsurance: true,
+                  generalInsurance: false,
+                  termInsurance: false,
+                  endowment: false,
+                  unitlinked: false,
+                  pension: false,
+                  motorInsurance: false,
+                  healthInsurance: false,
+                  travelInsurance: false,
+                },
+                {
+                  where: {
+                    userId: from,
+                  },
+                }
+              );
+            } catch (error) {
+              console.log(error);
             }
-          );
-        } catch (error) {
-          console.log(error);
-        }
-      } else if (selectedOptionId === "GenOption-L1") {
-        sendWhatsAppMessage(interactiveGeneralInsuranceMessage(from));
-        try {
-          await Customer.update(
-            {
-              lifeInsurance: false,
-              generalInsurance: true,
-            },
-            {
-              where: {
-                userId: from,
-              },
+          } else if (selectedOptionId === "GenOption-L1") {
+            await sendWhatsAppMessage(interactiveGeneralInsuranceMessage(from));
+            try {
+              await Customer.update(
+                {
+                  generalInsurance: true,
+                  lifeInsurance: false,
+                  termInsurance: false,
+                  endowment: false,
+                  unitlinked: false,
+                  pension: false,
+                  motorInsurance: false,
+                  healthInsurance: false,
+                  travelInsurance: false,
+                },
+                {
+                  where: {
+                    userId: from,
+                  },
+                }
+              );
+            } catch (error) {
+              console.log(error);
             }
-          );
-        } catch (error) {
-          console.log(error);
-        }
-      } else if (selectedOptionId === "TermInsuranceOption-L2") {
-        sendWhatsAppMessage(termInsuranceGenderMessage(from));
-        try {
-          await Customer.update(
-            {
-              termInsurance: true,
-            },
-            {
-              where: {
-                userId: from,
-              },
+          } else if (
+            messageBody.toLowerCase().includes("hello") ||
+            messageBody.toLowerCase().includes("hi")
+          ) {
+            await sendWhatsAppMessage(interactiveMainMessage(from));
+          }
+          if (selectedOptionId === "TermInsuranceOption-L2") {
+            await sendWhatsAppMessage(termInsuranceGenderMessage(from));
+            try {
+              await Customer.update(
+                {
+                  termInsurance: true,
+                  generalInsurance: false,
+                  endowment: false,
+                  unitlinked: false,
+                  pension: false,
+                  motorInsurance: false,
+                  healthInsurance: false,
+                  travelInsurance: false,
+                },
+                {
+                  where: {
+                    userId: from,
+                  },
+                }
+              );
+            } catch (error) {
+              console.log(error);
             }
-          );
-        } catch (error) {
-          console.log(error);
-        }
+          }
+          break;
       }
+
       if (User.termInsurance) {
         try {
           await TermInsurance.findOrCreate({
@@ -186,44 +220,82 @@ app.post("/webhook", async (req: any, res: any) => {
             userId: User.userId,
           },
         });
-        if (
+        if (!UserTermInsuranceData?.submit) {
+          if (
+            selectedButtonId === "MaleOption-L2" ||
+            selectedButtonId === "FemaleOption-L2"
+          ) {
+            if (User.currentPath != null) {
+              await sendWhatsAppMessage(termInsuranceDOBMessage(from));
+              try {
+                await TermInsurance.update(
+                  {
+                    gender: selectedButtonText,
+                    currentPath: "gender_section",
+                  },
+                  {
+                    where: {
+                      userId: User.userId,
+                    },
+                  }
+                );
+                await Customer.update(
+                  {
+                    currentPath: null,
+                  },
+                  {
+                    where: {
+                      userId: User.userId,
+                    },
+                  }
+                );
+              } catch (error) {
+                console.log(error);
+              }
+
+              // updateOrCreateObject(
+              //   termInsuranceData,
+              //   from,
+              //   selectedButtonText,
+              //   "Gender"
+              // );
+              // updateOrCreateObject(
+              //   termInsuranceData,
+              //   from,
+              //   "gender_section",
+              //   "CurrentPath"
+              // );
+            }
+          }
+        } else if (
+          selectedOptionId === "TermInsuranceOption-L2" ||
           selectedButtonId === "MaleOption-L2" ||
           selectedButtonId === "FemaleOption-L2"
         ) {
-          sendWhatsAppMessage(termInsuranceDOBMessage(from));
+          responseText =
+            "Already submitted your application is in progress.....";
           try {
-            await TermInsurance.update(
+            await Customer.update(
               {
-                gender: selectedButtonText,
-                currentPath: "gender_section",
+                termInsurance: false,
               },
               {
                 where: {
-                  userId: User.userId,
+                  userId: from,
                 },
               }
             );
           } catch (error) {
             console.log(error);
           }
-
-          // updateOrCreateObject(
-          //   termInsuranceData,
-          //   from,
-          //   selectedButtonText,
-          //   "Gender"
-          // );
-          // updateOrCreateObject(
-          //   termInsuranceData,
-          //   from,
-          //   "gender_section",
-          //   "CurrentPath"
-          // );
+          setTimeout(() => {
+            sendWhatsAppMessage(interactiveMainMessage(from));
+          }, 3000);
         }
         switch (UserTermInsuranceData?.currentPath) {
           case "gender_section":
             if (isValidDateOfBirth(messageBody)) {
-              sendWhatsAppMessage(termInsuranceIncomeMessage(from));
+              await sendWhatsAppMessage(termInsuranceIncomeMessage(from));
               try {
                 await TermInsurance.update(
                   {
@@ -247,13 +319,57 @@ app.post("/webhook", async (req: any, res: any) => {
               //   "dob_section",
               //   "CurrentPath"
               // );
+            } else if (
+              selectedOptionId === "TermInsuranceOption-L2" ||
+              selectedOptionId === "GenOption-L1" ||
+              selectedOptionId === "LifeOption-L1" ||
+              selectedOptionId === "MotorInsuranceOption-L2" ||
+              selectedOptionId === "HealthInsuranceOption-L2" ||
+              selectedOptionId === "TravelInsuranceOption-L2" ||
+              selectedOptionId === "EndowmentOption-L2" ||
+              selectedOptionId === "UnitlinkedOption-L2" ||
+              selectedOptionId === "PensionOption-L2" ||
+              messageBody.toLowerCase().includes("hello") ||
+              messageBody.toLowerCase().includes("hi")
+            ) {
+              await sendWhatsAppMessage(CancelMessage(from, "Term Insurance"));
+            } else if (selectedButtonId === "CancelOption") {
+              try {
+                await TermInsurance.update(
+                  {
+                    currentPath: null,
+                  },
+                  {
+                    where: {
+                      userId: UserTermInsuranceData.userId,
+                    },
+                  }
+                );
+                await Customer.update(
+                  {
+                    currentPath: "main_section",
+                  },
+                  {
+                    where: {
+                      userId: User.userId,
+                    },
+                  }
+                );
+                await sendWhatsAppMessage(interactiveMainMessage(from));
+              } catch (error) {
+                console.log(error);
+              }
+            } else if (selectedButtonId === "ContinueOption") {
+              await sendWhatsAppMessage(termInsuranceDOBMessage(from));
             } else {
               responseText = "Enter valid date of birth";
             }
             break;
           case "dob_section":
             if (isValidIncome(messageBody)) {
-              sendWhatsAppMessage(termInsuranceSmokerOrDrinkerMessage(from));
+              await sendWhatsAppMessage(
+                termInsuranceSmokerOrDrinkerMessage(from)
+              );
               try {
                 await TermInsurance.update(
                   {
@@ -269,7 +385,6 @@ app.post("/webhook", async (req: any, res: any) => {
               } catch (error) {
                 console.log("dob_section error", error);
               }
-
               // updateOrCreateObject(
               //   termInsuranceData,
               //   from,
@@ -282,6 +397,48 @@ app.post("/webhook", async (req: any, res: any) => {
               //   "income_section",
               //   "CurrentPath"
               // );
+            } else if (
+              selectedOptionId === "TermInsuranceOption-L2" ||
+              selectedOptionId === "GenOption-L1" ||
+              selectedOptionId === "LifeOption-L1" ||
+              selectedOptionId === "MotorInsuranceOption-L2" ||
+              selectedOptionId === "HealthInsuranceOption-L2" ||
+              selectedOptionId === "TravelInsuranceOption-L2" ||
+              selectedOptionId === "EndowmentOption-L2" ||
+              selectedOptionId === "UnitlinkedOption-L2" ||
+              selectedOptionId === "PensionOption-L2" ||
+              messageBody.toLowerCase().includes("hello") ||
+              messageBody.toLowerCase().includes("hi")
+            ) {
+              await sendWhatsAppMessage(CancelMessage(from, "Term Insurance"));
+            } else if (selectedButtonId === "CancelOption") {
+              try {
+                await TermInsurance.update(
+                  {
+                    currentPath: null,
+                  },
+                  {
+                    where: {
+                      userId: UserTermInsuranceData.userId,
+                    },
+                  }
+                );
+                await Customer.update(
+                  {
+                    currentPath: "main_section",
+                  },
+                  {
+                    where: {
+                      userId: User.userId,
+                    },
+                  }
+                );
+                await sendWhatsAppMessage(interactiveMainMessage(from));
+              } catch (error) {
+                console.log(error);
+              }
+            } else if (selectedButtonId === "ContinueOption") {
+              await sendWhatsAppMessage(termInsuranceIncomeMessage(from));
             } else {
               responseText = "Enter valid income";
             }
@@ -291,7 +448,7 @@ app.post("/webhook", async (req: any, res: any) => {
               selectedButtonId === "SmokerYesOption-L2" ||
               selectedButtonId === "SmokerNoOption-L2"
             ) {
-              sendWhatsAppMessage(termInsuranceContactMessage(from));
+              await sendWhatsAppMessage(termInsuranceContactMessage(from));
               try {
                 await TermInsurance.update(
                   {
@@ -320,13 +477,57 @@ app.post("/webhook", async (req: any, res: any) => {
               //   "smoke_section",
               //   "CurrentPath"
               // );
+            } else if (
+              selectedOptionId === "TermInsuranceOption-L2" ||
+              selectedOptionId === "GenOption-L1" ||
+              selectedOptionId === "LifeOption-L1" ||
+              selectedOptionId === "MotorInsuranceOption-L2" ||
+              selectedOptionId === "HealthInsuranceOption-L2" ||
+              selectedOptionId === "TravelInsuranceOption-L2" ||
+              selectedOptionId === "EndowmentOption-L2" ||
+              selectedOptionId === "UnitlinkedOption-L2" ||
+              selectedOptionId === "PensionOption-L2" ||
+              messageBody.toLowerCase().includes("hello") ||
+              messageBody.toLowerCase().includes("hi")
+            ) {
+              await sendWhatsAppMessage(CancelMessage(from, "Term Insurance"));
+            } else if (selectedButtonId === "CancelOption") {
+              try {
+                await TermInsurance.update(
+                  {
+                    currentPath: null,
+                  },
+                  {
+                    where: {
+                      userId: UserTermInsuranceData.userId,
+                    },
+                  }
+                );
+                await Customer.update(
+                  {
+                    currentPath: "main_section",
+                  },
+                  {
+                    where: {
+                      userId: User.userId,
+                    },
+                  }
+                );
+                await sendWhatsAppMessage(interactiveMainMessage(from));
+              } catch (error) {
+                console.log(error);
+              }
+            } else if (selectedButtonId === "ContinueOption") {
+              await sendWhatsAppMessage(
+                termInsuranceSmokerOrDrinkerMessage(from)
+              );
             } else {
               responseText = "Choose one option";
             }
             break;
           case "smoke_section":
             if (isValidIndianPhoneNumber(messageBody)) {
-              sendWhatsAppMessage(termInsuranceEmailMessage(from));
+              await sendWhatsAppMessage(termInsuranceEmailMessage(from));
               try {
                 await TermInsurance.update(
                   {
@@ -342,7 +543,6 @@ app.post("/webhook", async (req: any, res: any) => {
               } catch (error) {
                 console.log("smoke_section error", error);
               }
-
               // updateOrCreateObject(
               //   termInsuranceData,
               //   from,
@@ -355,6 +555,48 @@ app.post("/webhook", async (req: any, res: any) => {
               //   "contact_section",
               //   "CurrentPath"
               // );
+            } else if (
+              selectedOptionId === "TermInsuranceOption-L2" ||
+              selectedOptionId === "GenOption-L1" ||
+              selectedOptionId === "LifeOption-L1" ||
+              selectedOptionId === "MotorInsuranceOption-L2" ||
+              selectedOptionId === "HealthInsuranceOption-L2" ||
+              selectedOptionId === "TravelInsuranceOption-L2" ||
+              selectedOptionId === "EndowmentOption-L2" ||
+              selectedOptionId === "UnitlinkedOption-L2" ||
+              selectedOptionId === "PensionOption-L2" ||
+              messageBody.toLowerCase().includes("hello") ||
+              messageBody.toLowerCase().includes("hi")
+            ) {
+              await sendWhatsAppMessage(CancelMessage(from, "Term Insurance"));
+            } else if (selectedButtonId === "CancelOption") {
+              try {
+                await TermInsurance.update(
+                  {
+                    currentPath: null,
+                  },
+                  {
+                    where: {
+                      userId: UserTermInsuranceData.userId,
+                    },
+                  }
+                );
+                await Customer.update(
+                  {
+                    currentPath: "main_section",
+                  },
+                  {
+                    where: {
+                      userId: User.userId,
+                    },
+                  }
+                );
+                await sendWhatsAppMessage(interactiveMainMessage(from));
+              } catch (error) {
+                console.log(error);
+              }
+            } else if (selectedButtonId === "ContinueOption") {
+              await sendWhatsAppMessage(termInsuranceContactMessage(from));
             } else {
               responseText = "Enter valid phone number";
             }
@@ -400,13 +642,55 @@ app.post("/webhook", async (req: any, res: any) => {
                 },
               };
 
-              sendWhatsAppMessage(viewDetailsMessage);
+              await sendWhatsAppMessage(viewDetailsMessage);
               // updateOrCreateObject(
               //   termInsuranceData,
               //   from,
               //   "email_section",
               //   "CurrentPath"
               // );
+            } else if (
+              selectedOptionId === "TermInsuranceOption-L2" ||
+              selectedOptionId === "GenOption-L1" ||
+              selectedOptionId === "LifeOption-L1" ||
+              selectedOptionId === "MotorInsuranceOption-L2" ||
+              selectedOptionId === "HealthInsuranceOption-L2" ||
+              selectedOptionId === "TravelInsuranceOption-L2" ||
+              selectedOptionId === "EndowmentOption-L2" ||
+              selectedOptionId === "UnitlinkedOption-L2" ||
+              selectedOptionId === "PensionOption-L2" ||
+              messageBody.toLowerCase().includes("hello") ||
+              messageBody.toLowerCase().includes("hi")
+            ) {
+              await sendWhatsAppMessage(CancelMessage(from, "Term Insurance"));
+            } else if (selectedButtonId === "CancelOption") {
+              try {
+                await TermInsurance.update(
+                  {
+                    currentPath: null,
+                  },
+                  {
+                    where: {
+                      userId: UserTermInsuranceData.userId,
+                    },
+                  }
+                );
+                await Customer.update(
+                  {
+                    currentPath: "main_section",
+                  },
+                  {
+                    where: {
+                      userId: User.userId,
+                    },
+                  }
+                );
+                await sendWhatsAppMessage(interactiveMainMessage(from));
+              } catch (error) {
+                console.log(error);
+              }
+            } else if (selectedButtonId === "ContinueOption") {
+              await sendWhatsAppMessage(termInsuranceEmailMessage(from));
             } else {
               responseText = "Enter valid Email";
             }
@@ -421,7 +705,7 @@ app.post("/webhook", async (req: any, res: any) => {
                   body: `*_Gender_* : ${UserTermInsuranceData.gender}\n*_DOB_* : ${UserTermInsuranceData.dob}\n*_Income_* : ${UserTermInsuranceData.income}\n*_Smoker_* : ${UserTermInsuranceData.smoker}\n*_Contact_* : ${UserTermInsuranceData.contactNo}\n*_Email_* : ${UserTermInsuranceData.email}`,
                 },
               };
-              sendWhatsAppMessage(FinalTestMessage);
+              await sendWhatsAppMessage(FinalTestMessage);
               setTimeout(() => {
                 sendWhatsAppMessage(ConfirmOrEdit(from));
               }, 2000);
@@ -480,17 +764,27 @@ app.post("/webhook", async (req: any, res: any) => {
                     },
                   };
                   sendWhatsAppMessage(mainMenuMessage);
-                }, 5000);
+                }, 2000);
               } else if (selectedButtonId === "EditOption-L2") {
-                sendWhatsAppMessage(termInsuranceGenderMessage(from));
+                await sendWhatsAppMessage(termInsuranceGenderMessage(from));
                 try {
                   await TermInsurance.update(
                     {
-                      currentPath: "",
+                      currentPath: null,
                     },
                     {
                       where: {
                         userId: UserTermInsuranceData.userId,
+                      },
+                    }
+                  );
+                  await Customer.update(
+                    {
+                      currentPath: "main_section",
+                    },
+                    {
+                      where: {
+                        userId: User.userId,
                       },
                     }
                   );
@@ -505,6 +799,50 @@ app.post("/webhook", async (req: any, res: any) => {
                 //   "CurrentPath"
                 // );
               }
+            } else if (
+              selectedOptionId === "TermInsuranceOption-L2" ||
+              selectedOptionId === "GenOption-L1" ||
+              selectedOptionId === "LifeOption-L1" ||
+              selectedOptionId === "MotorInsuranceOption-L2" ||
+              selectedOptionId === "HealthInsuranceOption-L2" ||
+              selectedOptionId === "TravelInsuranceOption-L2" ||
+              selectedOptionId === "EndowmentOption-L2" ||
+              selectedOptionId === "UnitlinkedOption-L2" ||
+              selectedOptionId === "PensionOption-L2" ||
+              messageBody.toLowerCase().includes("hello") ||
+              messageBody.toLowerCase().includes("hi")
+            ) {
+              await sendWhatsAppMessage(CancelMessage(from, "Term Insurance"));
+            } else if (selectedButtonId === "CancelOption") {
+              try {
+                await TermInsurance.update(
+                  {
+                    currentPath: null,
+                  },
+                  {
+                    where: {
+                      userId: UserTermInsuranceData.userId,
+                    },
+                  }
+                );
+                await Customer.update(
+                  {
+                    currentPath: "main_section",
+                  },
+                  {
+                    where: {
+                      userId: User.userId,
+                    },
+                  }
+                );
+                await sendWhatsAppMessage(interactiveMainMessage(from));
+              } catch (error) {
+                console.log(error);
+              }
+            } else if (selectedButtonId === "ContinueOption") {
+              await sendWhatsAppMessage(
+                sendWhatsAppMessage(ConfirmOrEdit(from))
+              );
             }
             break;
           case "completed":
@@ -512,7 +850,9 @@ app.post("/webhook", async (req: any, res: any) => {
               try {
                 await Customer.update(
                   {
+                    lifeInsurance: false,
                     termInsurance: false,
+                    currentPath: "main_section",
                   },
                   {
                     where: {
@@ -523,13 +863,13 @@ app.post("/webhook", async (req: any, res: any) => {
               } catch (error) {
                 console.log("case completed error", error);
               }
-              sendWhatsAppMessage(interactiveMainMessage(from));
+              await sendWhatsAppMessage(interactiveMainMessage(from));
             }
             break;
         }
       }
     } else {
-      sendWhatsAppMessage(interactiveMainMessage(from));
+      await sendWhatsAppMessage(interactiveMainMessage(from));
       // updateOrCreateObject(
       //   termInsuranceData,
       //   from,
@@ -539,13 +879,14 @@ app.post("/webhook", async (req: any, res: any) => {
       try {
         await Customer.create({
           userId: from,
+          currentPath: "main_section",
         });
       } catch (error) {
         console.log(error);
       }
     }
     if (responseText != undefined) {
-      sendWhatsAppMessage(responseMessage(from, responseText));
+      await sendWhatsAppMessage(responseMessage(from, responseText));
     }
     res.sendStatus(200);
   } catch (error) {

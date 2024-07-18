@@ -43,3 +43,38 @@ export const ConfirmOrEdit = (from: string) => {
     },
   };
 };
+
+export const CancelMessage = (from: string, insurance_type: string) => {
+  return {
+    messaging_product: "whatsapp",
+    to: from,
+    type: "interactive",
+    interactive: {
+      type: "button",
+      body: {
+        text: `Click cancel to cancel the ${insurance_type} or click continue to continue this process.`,
+      },
+      footer: {
+        text: "Select one of the buttons below",
+      },
+      action: {
+        buttons: [
+          {
+            type: "reply",
+            reply: {
+              id: "CancelOption",
+              title: "Cancel",
+            },
+          },
+          {
+            type: "reply",
+            reply: {
+              id: "ContinueOption",
+              title: "Continue",
+            },
+          },
+        ],
+      },
+    },
+  };
+};

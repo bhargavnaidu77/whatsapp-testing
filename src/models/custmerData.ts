@@ -12,6 +12,7 @@ interface CustomerAttributes {
   motorInsurance?: boolean;
   healthInsurance?: boolean;
   travelInsurance?: boolean;
+  currentPath?: string | null;
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -28,6 +29,7 @@ class Customer extends Model<CustomerAttributes> implements CustomerAttributes {
   public motorInsurance?: boolean;
   public healthInsurance?: boolean;
   public travelInsurance?: boolean;
+  public currentPath?: string | null;
   public isActive?: boolean;
   public createdAt?: Date;
   public updatedAt?: Date;
@@ -93,6 +95,11 @@ Customer.init(
       allowNull: false,
       defaultValue: false,
       field: "travel_insurance",
+    },
+    currentPath: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: "current_path",
     },
     isActive: {
       type: DataTypes.BOOLEAN,

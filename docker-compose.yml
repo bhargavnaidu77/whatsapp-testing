@@ -12,15 +12,19 @@ services:
       - MYSQL_HOST=localhost
       - MYSQL_DATABASE=testdb
       - MYSQL_ROOT_PASSWORD=password
+    volumes:
+      - 87c27d613176d674cab121a3ee4b6cdbacb982fcacfe1ef07f8a39c3c1be654b:/var/lib/mysql
 
     networks:
       - wtsi-network
 
     container_name: "whatsapp-testing-db"
-
 networks:
   wtsi-network:
     external: false
     labels:
       keep: ""
     name: wtsi-network
+volumes:
+  87c27d613176d674cab121a3ee4b6cdbacb982fcacfe1ef07f8a39c3c1be654b:
+    external: true
